@@ -4,7 +4,8 @@ const expense = document.getElementById("expense");
 const category = document.getElementById("category");
 
 const expenseList = document.querySelector("ul");
-const expensesQuantity = document.querySelector("aside header p span")
+const expensesQuantity = document.querySelector("aside header p span");
+const expensesTotal = document.querySelector("aside header h2");
 
 // Formatação do valor
 amount.oninput = () => {
@@ -51,39 +52,83 @@ function expenseAdd(newExpense) {
         // Adição do texto da despesa
         const expenseInfo = document.createElement("div");
         expenseInfo.classList.add("expense-info");
-        // criando nome
+
         const expenseName = document.createElement("strong");
         expenseName.textContent = newExpense.expense;
-        //categoria da despesa
+
         const expenseCategory = document.createElement("span");
         expenseCategory.textContent = `(${newExpense.category_name})`;
-        //adicionando a div
-        expenseInfo.append(expenseName, expenseCategory);
 
+        expenseInfo.append(expenseName, expenseCategory);
 
         // Adicionando o valor ao item
         const expenseAmount = document.createElement("span");
         expenseAmount.classList.add("expense-amount");
-        expenseAmount.innerHTML = `<small>R$</small>${newExpense.amount.toUpperCase().replace("R$"," ")}`;
-        //Adicionando icone de remover o item
+        expenseAmount.innerHTML = `<small>R$</small>${newExpense.amount.toUpperCase().replace("R$", " ")}`;
+
         const expenseRemove = document.createElement("img");
         expenseRemove.classList.add("remove-icon");
         expenseRemove.setAttribute("src", "./img/remove.svg");
-        // Adiciona o itens ao item
-        expenseItem.append(expenseIcon,expenseInfo, expenseAmount,expenseRemove);
+
+        // Adiciona os itens ao item
+        expenseItem.append(expenseIcon, expenseInfo, expenseAmount, expenseRemove);
         expenseList.append(expenseItem);
-        //Atualiza totais da Lista
+
+        // Atualiza totais da lista
         updateTotals();
+        //limpa o formulario
+        formClear();
     } catch (error) {
         alert("Erro ao adicionar despesa");
         console.log(error);
     }
 }
 
-function updateTotals(){
-try {
-const items = expenseList.children
-} catch (error) {
-console.log(error);
+// Atualiza os totais
+function updateTotals() {
+    try {
+        if (!expensesQuantity || !expensesTotal) {
+            console.log("Elementos para exibição de totais não foram encontrados.");
+            return;
+        }
+
+        const items = expenseList.children;
+
+        expensesQuantity.textContent = `${items.length} ${items.length > 1 ? "despesas" : "despesa"}`;
+
+        let total = 0;
+
+        for (let item = 0; item < items.length; item++) {
+            const itemAmount = items[item].querySelector(".expense-amount").textContent;
+
+            let value = itemAmount.replace(/[^\d,]/g, "").replace(",", "."); // Remove caracteres indesejados e ajusta para número
+            value = parseFloat(value);
+
+            if (isNaN(value)) {
+                return alert("Valor inválido");
+            }
+
+            total += value;
+        }
+
+        expensesTotal.textContent = formatCurrencyBRL(total);
+    } catch (error) {
+        console.log(error);
+    }
 }
+
+// Evento para remover despesas
+expenseList.onclick = (event) => {
+    const clickedElement = event.target;
+
+    if (clickedElement.classList.contains("remove-icon")) {
+        clickedElement.parentElement.remove();
+        updateTotals();
+    }
+};
+
+function formClear(){
+    expense.value = "";
+    amount.value = "";
+    category.value = "";
 }
